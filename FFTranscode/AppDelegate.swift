@@ -21,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let inFileName = inFile.deletingPathExtension().lastPathComponent
         let outFile = inFile.parentDir.appendingPathComponent(inFileName + ".opus")
         
-        transcodeWithNoise(inFile.path, outFile.path)
+        transcodeSlightlyShort(inFile.path, outFile.path)
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {

@@ -130,9 +130,7 @@ class FFmpegPacket {
         // thrown.
         if destroyed {return}
         
-        av_packet_unref(&avPacket)
-        av_freep(&avPacket)
-        
+        av_packet_free(&pointer)
         destroyed = true
     }
     

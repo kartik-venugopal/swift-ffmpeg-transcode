@@ -8,6 +8,8 @@
 #ifndef transcode_h
 #define transcode_h
 
+#include "transcode2.h"
+
 int transcodeWithNoise(const char *inFile, const char *outFile);
 
 #endif /* transcode_h */

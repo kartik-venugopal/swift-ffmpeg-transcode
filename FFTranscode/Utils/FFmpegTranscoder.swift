@@ -15,6 +15,8 @@ class FFmpegTranscoder {
     let resampler: FFmpegResamplingContext
     let fifo: FFmpegAudioFIFO
     
+    var convertedSamples: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>!
+    
     init(inputFile: URL, outputFile: URL) throws {
         
         self.inputFileCtx = try FFmpegInputFileContext(for: inputFile)
@@ -44,52 +46,52 @@ class FFmpegTranscoder {
         
         writeHeader()
         
-//        while true {
-//
-//            let outFrameSize = outputFileCtx.outputCodecCtx.frame_size
-//            var finished: Bool = false
-//
-//            while fifo.size < outFrameSize {
-//
-//                let result = readDecodeConvertAndStore()
-//                if result.0.isError {
-//
-//                    cleanUp()
-//                    return
-//                }
-//
-//                finished = result.1
-//
-//                if finished {break}
-//            }
-//
-//            while (fifo.size >= outFrameSize) || (finished && fifo.size > 0) {
-//
-//                if loadEncodeAndWrite().isError {
-//
-//                    cleanUp()
-//                    return
-//                }
-//            }
-//
-//            if finished {
-//
-//                var dataWritten: Bool = false
-//
-//                repeat {
-//
-//                    dataWritten = false
-//                    if encodeAudioFrame().isError {
-//
-//                        cleanUp()
-//                        return
-//                    }
-//
-//                } while dataWritten
-//
-//                break
-//            }
-//        }
+        while true {
+
+            let outFrameSize = outputFileCtx.outputCodecCtx.frame_size
+            var finished: Bool = false
+
+            while fifo.size < outFrameSize {
+
+                let result = readDecodeConvertAndStore()
+                if result.0.isError {
+
+                    cleanUp()
+                    return
+                }
+
+                finished = result.1
+
+                if finished {break}
+            }
+
+            while (fifo.size >= outFrameSize) || (finished && fifo.size > 0) {
+
+                if loadEncodeAndWrite().isError {
+
+                    cleanUp()
+                    return
+                }
+            }
+
+            if finished {
+
+                var dataWritten: Bool = false
+
+                repeat {
+
+                    dataWritten = false
+                    if encodeAudioFrame().isError {
+
+                        cleanUp()
+                        return
+                    }
+
+                } while dataWritten
+
+                break
+            }
+        }
 
         writeOutputFileTrailer()
         cleanUp()
@@ -109,42 +111,57 @@ class FFmpegTranscoder {
         0
     }
     
-    private func decodeAudioFrame() -> (frame: FFmpegFrame, dataPresent: Int32, finished: Int32) {
+    private func decodeAudioFrame() -> (frame: FFmpegFrame?, dataPresent: Bool, finished: Bool) {
         
-        let frame = try! inputFileCtx.readFrame().frames[0]
-        return (frame, 0, 0)
+        do {
+            
+            let frame = try inputFileCtx.readFrame().frames[0]
+            return (frame, true, false)
+            
+        } catch {
+            
+            if let readError = error as? PacketReadError {
+                return (nil, false, readError.isEOF)
+            }
+            
+            return (nil, false, false)
+        }
+    }
+    
+    private func convertSamples(in frame: FFmpegFrame) {
+        
+        convertedSamples = .allocate(capacity: Int(inputFileCtx.codec.channelCount))
+        av_samples_alloc(convertedSamples, nil, outputFileCtx.outputCodecCtx.channels, frame.sampleCount, outputFileCtx.outputCodecCtx.sample_fmt, 0)
+        
+        frame.dataPointers.withMemoryRebound(to: UnsafePointer<UInt8>?.self, capacity: frame.intChannelCount) {
+            (inputDataPointers: UnsafeMutablePointer<UnsafePointer<UInt8>?>) in
+            
+            resampler.convert(inputDataPointer: inputDataPointers, inputSampleCount: frame.sampleCount,
+                              outputDataPointer: convertedSamples, outputSampleCount: 0)
+        }
     }
     
     private func readDecodeConvertAndStore() -> (Int32, Bool) {
-        
-        func cleanUp() {
-            
-        }
         
         /* Temporary storage for the converted input samples. */
         var convertedInputSamples: UnsafeMutablePointer<UnsafePointer<UInt8>?>? = nil
         
         var dataPresent: Int32 = 0
+        var finished: Bool = false
         var ret: Int32 = ERROR_EXIT
 
-        /* Initialize temporary storage for one input frame. */
+        let decodeResult = decodeAudioFrame()
         
-        /* Temporary storage of the input samples of the frame read from the file. */
+        if decodeResult.finished {
+            return (0, true)
+        }
         
+        guard let inputFrame = decodeResult.frame, decodeResult.dataPresent else {return (ret, false)}
         
-//        if (init_input_frame(&input_frame))
-//            goto cleanup;
-//        /* Decode one frame worth of audio samples. */
-//        if (decode_audio_frame(input_frame, input_format_context,
-//                               input_codec_context, &data_present, finished))
-//            goto cleanup;
-//        /* If we are at the end of the file and there are no more samples
-//         * in the decoder which are delayed, we are actually finished.
-//         * This must not be treated as an error. */
-//        if (*finished) {
-//            ret = 0;
-//            goto cleanup;
-//        }
+        convertSamples(in: inputFrame)
+        
+        fifo.addSamples(convertedInputSamples, frameSize: inputFrame.sampleCount)
+
 //        /* If there is decoded data, convert and store it. */
 //        if (data_present) {
 //            /* Initialize the temporary storage for the converted input samples. */
@@ -166,8 +183,15 @@ class FFmpegTranscoder {
 //        }
 //        ret = 0;
         
-        cleanUp()
         return (0, false)
+    }
+    
+    private func encodeAudioFrame() {
+        
+    }
+    
+    private func loadEncodeAndWrite() {
+        
     }
     
     private func writeHeader() {

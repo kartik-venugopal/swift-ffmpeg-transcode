@@ -46,6 +46,7 @@
 		3EDC8F4128EA1C3700C24888 /* libswresample.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EDC8F3328EA1C2E00C24888 /* libswresample.xcframework */; };
 		3EDC8F4228EA1C3700C24888 /* libswresample.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3EDC8F3328EA1C2E00C24888 /* libswresample.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3EE7019C28EB3F9D004F7844 /* FFmpegTranscoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE7019B28EB3F9D004F7844 /* FFmpegTranscoder.swift */; };
+		3EE7351328F5FC9A00D65F87 /* transcode2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EE7351228F5FC9A00D65F87 /* transcode2.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -105,6 +106,8 @@
 		3EDC8F3528EA1C2E00C24888 /* libavcodec.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = libavcodec.xcframework; sourceTree = "<group>"; };
 		3EDC8F3628EA1C2E00C24888 /* libavutil.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = libavutil.xcframework; sourceTree = "<group>"; };
 		3EE7019B28EB3F9D004F7844 /* FFmpegTranscoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFmpegTranscoder.swift; sourceTree = "<group>"; };
+		3EE7351128F5FC9A00D65F87 /* transcode2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transcode2.h; sourceTree = "<group>"; };
+		3EE7351228F5FC9A00D65F87 /* transcode2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = transcode2.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +148,8 @@
 				3EDC8E9928EA023A00C24888 /* AppDelegate.swift */,
 				3ED410F528EB75E2002F9B99 /* transcode.h */,
 				3E83D33928F5C97C006B20E8 /* transcode.c */,
+				3EE7351128F5FC9A00D65F87 /* transcode2.h */,
+				3EE7351228F5FC9A00D65F87 /* transcode2.c */,
 				3EDC8EDE28EA030D00C24888 /* ffmpeg.h */,
 				3EDC8EDF28EA030D00C24888 /* ffmpeg.c */,
 				3EDC8EE028EA030D00C24888 /* Wrappers */,
@@ -308,6 +313,7 @@
 				3EDC8F0828EA030D00C24888 /* FFmpegFrameBuffer.swift in Sources */,
 				3EDC8F0B28EA030D00C24888 /* FFmpegChannelLayoutsMapper.swift in Sources */,
 				3EDC8E9A28EA023A00C24888 /* AppDelegate.swift in Sources */,
+				3EE7351328F5FC9A00D65F87 /* transcode2.c in Sources */,
 				3E83D33A28F5C97C006B20E8 /* transcode.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
